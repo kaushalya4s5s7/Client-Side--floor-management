@@ -4,37 +4,86 @@ import type {
   FloorRoom,
   CreateFloorRoomPayload,
   UpdateFloorRoomPayload,
+  CreateFloorPayload,
   ApiResponse,
 } from '@/types';
 
 class FloorService {
   async getAllFloors(): Promise<Floor[]> {
     // GET /api/v1/floors
-    const response = await httpClient.get<ApiResponse<Floor[]>>(
+    // Backend returns: { message, floors: [], count }
+    const response = await httpClient.get<{ message: string; floors: any[]; count: number }>(
       '/api/v1/floors'
     );
-    return response.data.data;
+
+    // Handle empty or missing floors array
+    if (!response.data.floors || !Array.isArray(response.data.floors)) {
+      return [];
+    }
+
+    // Map backend response to frontend Floor type
+    return response.data.floors.map((floor: any) => ({
+      id: floor._id,
+      name: floor.floorName || `Floor ${floor.floorNumber}`,
+      description: floor.floorDescription,
+    }));
+  }
+
+  async createFloor(payload: CreateFloorPayload): Promise<Floor> {
+    // POST /api/v1/floors
+    // SECURITY NOTE: Backend should verify Admin role from httpOnly cookie
+    const response = await httpClient.post<{ message: string; floor: any }>(
+      '/api/v1/floors',
+      payload
+    );
+
+    const floor = response.data.floor;
+    return {
+      id: floor._id,
+      name: floor.floorName || `Floor ${floor.floorNumber}`,
+      description: floor.floorDescription,
+    };
   }
 
   async getRoomsByFloorId(floorId: string): Promise<FloorRoom[]> {
     // GET /api/v1/floors/:floorId/rooms
-    const response = await httpClient.get<ApiResponse<FloorRoom[]>>(
+    // Backend returns: { message, rooms: [] }
+    const response = await httpClient.get<{ message: string; rooms: any[] }>(
       `/api/v1/floors/${floorId}/rooms`
     );
-    return response.data.data;
+
+    // Handle empty or missing rooms array
+    if (!response.data.rooms || !Array.isArray(response.data.rooms)) {
+      return [];
+    }
+
+    // Map backend response to frontend FloorRoom type
+    return response.data.rooms.map((room: any) => ({
+      id: room._id,
+      floorId: room.floorId,
+      name: room.roomName,
+      capacity: room.capacity,
+      features: room.roomFeatures || [],
+      createdBy: room.createdBy,
+      updatedBy: room.updatedBy,
+      createdAt: room.createdAt,
+      updatedAt: room.updatedAt,
+    }));
   }
 
   async createFloorRoom(payload: CreateFloorRoomPayload): Promise<FloorRoom> {
     // POST /api/v1/floors/:floorId/rooms
     // SECURITY NOTE: Backend should extract created_by from httpOnly cookie
-    // and verify admin role before creating room
+    // and verify Admin role before creating room
     const response = await httpClient.post<ApiResponse<FloorRoom>>(
       `/api/v1/floors/${payload.floor_id}/rooms`,
       {
-        floor_id: payload.floor_id,
-        name: payload.name,
+        roomId: payload.roomId,
+        roomName: payload.roomName,
         capacity: payload.capacity,
-        features: payload.features,
+        roomFeatures: payload.roomFeatures,
+        floorId: payload.floor_id,
+        // createdBy is extracted from httpOnly cookie by backend
       }
     );
     return response.data.data;
@@ -43,17 +92,37 @@ class FloorService {
   async updateFloorRoom(roomId: string, payload: UpdateFloorRoomPayload): Promise<FloorRoom> {
     // PUT /api/v1/rooms/:id
     // SECURITY NOTE: Backend should extract updated_by from httpOnly cookie
-    // and verify admin role before updating room
-    const response = await httpClient.put<ApiResponse<FloorRoom>>(
+    // and verify Admin role before updating room
+
+    // Map frontend payload to backend expected format
+    const backendPayload: any = {};
+    if (payload.name !== undefined) backendPayload.roomName = payload.name;
+    if (payload.capacity !== undefined) backendPayload.capacity = payload.capacity;
+    if (payload.features !== undefined) backendPayload.roomFeatures = payload.features;
+
+    const response = await httpClient.put<{ message: string; room: any }>(
       `/api/v1/rooms/${roomId}`,
-      payload
+      backendPayload
     );
-    return response.data.data;
+
+    // Map backend response to frontend FloorRoom type
+    const room = response.data.room;
+    return {
+      id: room._id,
+      floorId: room.floorId,
+      name: room.roomName,
+      capacity: room.capacity,
+      features: room.roomFeatures || [],
+      createdBy: room.createdBy,
+      updatedBy: room.updatedBy,
+      createdAt: room.createdAt,
+      updatedAt: room.updatedAt,
+    };
   }
 
   async deleteFloorRoom(roomId: string): Promise<void> {
     // DELETE /api/v1/rooms/:id
-    // SECURITY NOTE: Backend should verify admin role from httpOnly cookie
+    // SECURITY NOTE: Backend should verify Admin role from httpOnly cookie
     await httpClient.delete(`/api/v1/rooms/${roomId}`);
   }
 }

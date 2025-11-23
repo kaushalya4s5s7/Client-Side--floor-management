@@ -7,7 +7,7 @@ import { formatErrorForDisplay } from '@/errors/errorHandler';
 import { getMinDateTime, validateBookingTimes } from '@/utils/dateValidation';
 import type { AvailabilitySearchParams } from '@/types';
 
-const AVAILABLE_FEATURES = ['wifi', 'whiteboard', 'projector'];
+const AVAILABLE_FEATURES = ['Wifi', 'Whiteboard', 'Projector'];
 
 export const AvailabilitySearchForm: React.FC = () => {
   const { setSearchResults, setSearchParams } = useBookingStore();

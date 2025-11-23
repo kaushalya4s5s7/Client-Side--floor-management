@@ -13,7 +13,7 @@ interface EditFloorRoomModalProps {
   onSuccess: () => void;
 }
 
-const AVAILABLE_FEATURES = ['wifi', 'whiteboard', 'projector'];
+const AVAILABLE_FEATURES = ['Wifi', 'Whiteboard', 'Projector'];
 
 export const EditFloorRoomModal: React.FC<EditFloorRoomModalProps> = ({
   isOpen,

@@ -17,9 +17,9 @@ class BookingService {
       features: params.features?.map(feature => {
         // Map lowercase frontend features to capitalized backend format
         const featureMap: Record<string, string> = {
-          'wifi': 'Wifi',
-          'whiteboard': 'Whiteboard',
-          'projector': 'Projector'
+          'Wifi': 'Wifi',
+          'Whiteboard': 'Whiteboard',
+          'Projector': 'Projector'
         };
         return featureMap[feature.toLowerCase()] || feature;
       })

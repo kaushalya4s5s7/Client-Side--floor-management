@@ -7,6 +7,14 @@ import type {
   User
 } from '@/types';
 
+// Helper function to map backend roles to frontend roles
+function mapBackendRole(backendRole: string): 'Admin' | 'Client' {
+  const roleLower = backendRole.toLowerCase();
+  if (roleLower === 'admin') return 'Admin';
+  if (roleLower === 'user' || roleLower === 'client') return 'Client';
+  return 'Client'; // default to Client
+}
+
 class AuthService {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     // POST /api/v1/user/login
@@ -15,7 +23,7 @@ class AuthService {
     // IMPORTANT: Backend MUST also include user data in response body
     // because httpOnly cookies cannot be read by JavaScript
     const response = await httpClient.post<ApiResponse<{
-      user: { _id: string; email: string; role: 'admin' | 'user'; name?: string };
+      user: { _id: string; email: string; role: string; name?: string };
     }>>(
       '/api/v1/user/login',
       credentials
@@ -30,7 +38,7 @@ class AuthService {
     const user: User = {
       id: userData.user._id,
       email: userData.user.email,
-      role: userData.user.role || 'user',
+      role: mapBackendRole(userData.user.role),
       name: userData.user.name,
     };
 
@@ -47,7 +55,7 @@ class AuthService {
     // IMPORTANT: Backend MUST also include user data in response body
     // because httpOnly cookies cannot be read by JavaScript
     const response = await httpClient.post<ApiResponse<{
-      user: { _id: string; email: string; role: 'admin' | 'user'; name?: string };
+      user: { _id: string; email: string; role: string; name?: string };
     }>>(
       '/api/v1/user/signup',
       credentials
@@ -62,7 +70,7 @@ class AuthService {
     const user: User = {
       id: userData.user._id,
       email: userData.user.email,
-      role: userData.user.role || 'user',
+      role: mapBackendRole(userData.user.role),
       name: userData.user.name || credentials.name,
     };
 

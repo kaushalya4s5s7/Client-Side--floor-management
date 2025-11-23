@@ -44,7 +44,7 @@ export const Header: React.FC = () => {
             </button>
 
             {/* Admin-only: Floors Management */}
-            {role === 'admin' && (
+            {role === 'Admin' && (
               <button
                 onClick={() => navigate('/floors')}
                 className="text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors"

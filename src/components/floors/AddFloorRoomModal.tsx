@@ -14,7 +14,7 @@ interface AddFloorRoomModalProps {
   onSuccess: () => void;
 }
 
-const AVAILABLE_FEATURES = ['wifi', 'whiteboard', 'projector'];
+const AVAILABLE_FEATURES = ['Wifi', 'Whiteboard', 'Projector'];
 
 export const AddFloorRoomModal: React.FC<AddFloorRoomModalProps> = ({
   isOpen,
@@ -25,6 +25,7 @@ export const AddFloorRoomModal: React.FC<AddFloorRoomModalProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
+    roomId: 0,
     name: '',
     capacity: 1,
     features: [] as string[],
@@ -36,7 +37,7 @@ export const AddFloorRoomModal: React.FC<AddFloorRoomModalProps> = ({
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'capacity' ? Number(value) : value,
+      [name]: name === 'capacity' || name === 'roomId' ? Number(value) : value,
     }));
   };
 
@@ -57,9 +58,10 @@ export const AddFloorRoomModal: React.FC<AddFloorRoomModalProps> = ({
     try {
       const payload: CreateFloorRoomPayload = {
         floor_id: floorId,
-        name: formData.name,
+        roomId: formData.roomId,
+        roomName: formData.name,
         capacity: formData.capacity,
-        features: formData.features,
+        roomFeatures: formData.features,
       };
 
       await floorService.createFloorRoom(payload);
@@ -69,9 +71,10 @@ export const AddFloorRoomModal: React.FC<AddFloorRoomModalProps> = ({
 
       // Reset form
       setFormData({
+        roomId: 0,
         name: '',
         capacity: 1,
-        features: [],
+        features: [] as string[],
       });
     } catch (error) {
       toast.error(formatErrorForDisplay(error));
@@ -83,9 +86,10 @@ export const AddFloorRoomModal: React.FC<AddFloorRoomModalProps> = ({
   const handleClose = () => {
     if (!isLoading) {
       setFormData({
+        roomId: 0,
         name: '',
         capacity: 1,
-        features: [],
+        features: [] as string[],
       });
       onClose();
     }
@@ -104,6 +108,29 @@ export const AddFloorRoomModal: React.FC<AddFloorRoomModalProps> = ({
             disabled
             className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600 text-sm"
           />
+        </div>
+
+        <div>
+          <label
+            htmlFor="roomId"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Room ID *
+          </label>
+          <input
+            id="roomId"
+            name="roomId"
+            type="number"
+            required
+            min="1"
+            value={formData.roomId}
+            onChange={handleChange}
+            placeholder="e.g., 101"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-sm"
+          />
+          <p className="text-xs text-gray-500 mt-2">
+            Unique room number identifier
+          </p>
         </div>
 
         <div>
