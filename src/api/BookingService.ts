@@ -3,8 +3,6 @@ import type {
   AvailabilitySearchParams,
   AvailableRoom,
   Booking,
-  CreateBookingPayload,
-  UpdateBookingPayload,
   ApiResponse,
 } from '@/types';
 
@@ -91,36 +89,58 @@ class BookingService {
   }
 
   async getBookingsByUser(userId: string): Promise<Booking[]> {
-    // GET /api/v1/bookings/:userId (userId in URL, not query param)
-    const response = await httpClient.get<ApiResponse<Array<{
-      id: string;
-      room_name: string;
-      description: string;
-      start_time: string;
-      end_time: string;
-    }>>>(
+    // GET /api/v1/bookings/:userId
+    // Backend returns { message, bookings, count } not wrapped in ApiResponse.data
+    const response = await httpClient.get<{
+      message: string;
+      bookings: Array<{
+        _id: string;
+        roomId: {
+          _id: string;
+          roomId: number;
+          roomName: string;
+          capacity: number;
+          roomFeatures: string[];
+          floorId: string;
+        };
+        userId: {
+          _id: string;
+          name: string;
+          email: string;
+        };
+        startTime: string;
+        endTime: string;
+        capacity: number;
+        purpose: string;
+        status: string;
+        createdBy: string;
+        createdAt: string;
+        updatedAt: string;
+      }>;
+      count: number;
+    }>(
       `/api/v1/bookings/${userId}`
     );
 
-    // Convert snake_case response to camelCase
-    return response.data.data.map(booking => ({
-      id: booking.id,
-      roomId: '', // Not provided in response
-      userId,
-      title: booking.description,
-      description: booking.description,
-      startTime: booking.start_time,
-      endTime: booking.end_time,
-      capacity: 1,
-      status: 'confirmed',
-      createdAt: '',
-      updatedAt: '',
+    // Map backend booking structure to frontend Booking format
+    return response.data.bookings.map((booking) => ({
+      id: booking._id,
+      roomId: booking.roomId._id,
+      userId: booking.userId._id,
+      title: booking.purpose,
+      description: booking.purpose,
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      capacity: booking.capacity,
+      status: booking.status as 'pending' | 'confirmed' | 'cancelled',
+      createdAt: booking.createdAt,
+      updatedAt: booking.updatedAt,
       room: {
-        id: '',
-        name: booking.room_name,
+        id: booking.roomId._id,
+        name: booking.roomId.roomName,
         description: '',
-        capacity: 1,
-        features: [],
+        capacity: booking.roomId.capacity,
+        features: (booking.roomId.roomFeatures || []).map((f: string) => f.toLowerCase()),
       }
     } as Booking));
   }
@@ -132,13 +152,23 @@ class BookingService {
     return response.data.data;
   }
 
-  async updateBooking(bookingId: string, payload: UpdateBookingPayload): Promise<Booking> {
+  async updateBooking(
+    bookingId: string,
+    payload: {
+      startTime: string;
+      endTime: string;
+      capacity: number;
+      purpose: string;
+    }
+  ): Promise<Booking> {
     // PUT /api/v1/bookings/:id
-    // Convert to snake_case
-    const apiPayload: Record<string, any> = {};
-    if (payload.description) apiPayload.description = payload.description;
-    if (payload.startTime) apiPayload.start_time = payload.startTime;
-    if (payload.endTime) apiPayload.end_time = payload.endTime;
+    // Backend expects: startTime, endTime, capacity, purpose in body
+    const apiPayload = {
+      startTime: payload.startTime,
+      endTime: payload.endTime,
+      capacity: payload.capacity,
+      purpose: payload.purpose,
+    };
 
     await httpClient.put<ApiResponse<{ success: boolean; message: string }>>(
       `/api/v1/bookings/${bookingId}`,
@@ -149,7 +179,11 @@ class BookingService {
     // Return updated booking for immediate feedback
     return {
       id: bookingId,
-      ...payload,
+      title: payload.purpose,
+      description: payload.purpose,
+      startTime: payload.startTime,
+      endTime: payload.endTime,
+      capacity: payload.capacity,
     } as Booking;
   }
 
