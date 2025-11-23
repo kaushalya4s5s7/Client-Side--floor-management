@@ -89,9 +89,7 @@ export const AvailabilitySearchForm: React.FC = () => {
               onChange={handleChange}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Must be in the future
-            </p>
+           
           </div>
 
           <div>
@@ -111,9 +109,7 @@ export const AvailabilitySearchForm: React.FC = () => {
               onChange={handleChange}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Must be after window start
-            </p>
+           
           </div>
 
           <div>

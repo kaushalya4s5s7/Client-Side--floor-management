@@ -7,7 +7,7 @@ import { formatErrorForDisplay } from '@/errors/errorHandler';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
-  const { email, logout: logoutStore } = useAuthStore();
+  const { email, role, logout: logoutStore } = useAuthStore();
 
   const handleLogout = async () => {
     try {
@@ -42,6 +42,16 @@ export const Header: React.FC = () => {
             >
               My Bookings
             </button>
+
+            {/* Admin-only: Floors Management */}
+            {role === 'admin' && (
+              <button
+                onClick={() => navigate('/floors')}
+                className="text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors"
+              >
+                Floors
+              </button>
+            )}
 
             {/* User menu */}
             <div className="flex items-center gap-3 pl-6 border-l border-gray-200">

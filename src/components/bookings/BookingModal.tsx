@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUIStore } from '@/store/uiStore';
 import { useBookingStore } from '@/store/bookingStore';
 import { bookingService } from '@/api/BookingService';
@@ -6,12 +6,14 @@ import { ModalFactory } from '@/factory/ModalFactory';
 import { ButtonFactory } from '@/factory/ButtonFactory';
 import { toast } from '@/factory/ToastFactory';
 import { formatErrorForDisplay } from '@/errors/errorHandler';
+import { getMinDateTime, validateBookingTimes } from '@/utils/dateValidation';
 import type { CreateBookingPayload } from '@/types';
 
 export const BookingModal: React.FC = () => {
   const { modal, closeModal } = useUIStore();
   const selectedRoom = useBookingStore((state) => state.selectedRoom);
   const [isLoading, setIsLoading] = useState(false);
+  const [minDateTime, setMinDateTime] = useState('');
 
   const [formData, setFormData] = useState<CreateBookingPayload>({
     title: '',
@@ -23,6 +25,10 @@ export const BookingModal: React.FC = () => {
     capacity: selectedRoom?.capacity || 1,
     participants: [],
   });
+
+  useEffect(() => {
+    setMinDateTime(getMinDateTime());
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -42,6 +48,23 @@ export const BookingModal: React.FC = () => {
 
     if (!selectedRoom) {
       toast.error('No room selected');
+      return;
+    }
+
+    // Validate booking times
+    const validation = validateBookingTimes(
+      formData.startTime,
+      formData.endTime
+    );
+
+    if (!validation.isValid) {
+      validation.errors.forEach((error) => toast.error(error));
+      return;
+    }
+
+    // Validate capacity
+    if (formData.capacity > selectedRoom.capacity) {
+      toast.error(`Capacity cannot exceed room capacity (${selectedRoom.capacity})`);
       return;
     }
 
@@ -118,10 +141,12 @@ export const BookingModal: React.FC = () => {
               name="startTime"
               type="datetime-local"
               required
+              min={minDateTime}
               value={formData.startTime}
               onChange={handleChange}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
             />
+           
           </div>
 
           <div>
@@ -136,10 +161,14 @@ export const BookingModal: React.FC = () => {
               name="endTime"
               type="datetime-local"
               required
+              min={formData.startTime || minDateTime}
               value={formData.endTime}
               onChange={handleChange}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Must be after start time
+            </p>
           </div>
 
           <div>

@@ -6,6 +6,7 @@ interface AuthState {
   userId: string | null;
   email: string | null;
   name: string | null;
+  role: 'admin' | 'user' | null;
   isLoggedIn: boolean;
 
   // Actions
@@ -20,12 +21,14 @@ export const useAuthStore = create<AuthState>()(
       userId: null,
       email: null,
       name: null,
+      role: null,
       isLoggedIn: false,
 
       login: (user: User) => set({
         userId: user.id,
         email: user.email,
         name: user.name,
+        role: user.role || 'user',
         isLoggedIn: true,
       }),
 
@@ -33,6 +36,7 @@ export const useAuthStore = create<AuthState>()(
         userId: null,
         email: null,
         name: null,
+        role: null,
         isLoggedIn: false,
       }),
 
@@ -40,6 +44,7 @@ export const useAuthStore = create<AuthState>()(
         userId: user.id ?? state.userId,
         email: user.email ?? state.email,
         name: user.name ?? state.name,
+        role: user.role ?? state.role,
       })),
     }),
     {
@@ -48,6 +53,7 @@ export const useAuthStore = create<AuthState>()(
         userId: state.userId,
         email: state.email,
         name: state.name,
+        role: state.role,
         isLoggedIn: state.isLoggedIn,
       }),
     }

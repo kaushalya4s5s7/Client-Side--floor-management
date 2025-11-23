@@ -3,6 +3,7 @@ export interface User {
   id: string;
   email: string;
   name?: string;
+  role?: 'admin' | 'user';
 }
 
 export interface LoginCredentials {
@@ -131,4 +132,37 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
   hasMore: boolean;
+}
+
+// Floor Management Types (Admin only)
+export interface Floor {
+  id: string;
+  name: string;
+  description?: string;
+  rooms?: FloorRoom[];
+}
+
+export interface FloorRoom {
+  id: string;            // Room _id (internal - do not display)
+  floorId: string;       // Floor _id (internal - do not display)
+  name: string;          // Display
+  capacity: number;      // Display
+  features: string[];    // Display: ['wifi', 'whiteboard', 'projector']
+  createdBy?: string;    // Internal - do not display
+  updatedBy?: string;    // Internal - do not display
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateFloorRoomPayload {
+  floor_id: string;      // Internal floor ID
+  name: string;
+  capacity: number;
+  features: string[];    // Array of selected features
+}
+
+export interface UpdateFloorRoomPayload {
+  name?: string;
+  capacity?: number;
+  features?: string[];
 }

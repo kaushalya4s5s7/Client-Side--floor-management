@@ -7,6 +7,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { MyBookingsPage } from './pages/MyBookingsPage';
+import { FloorsPage } from './pages/FloorsPage';
 
 function App() {
   const logout = useAuthStore((state) => state.logout);
@@ -45,6 +46,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <MyBookingsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/floors"
+            element={
+              <ProtectedRoute>
+                <FloorsPage />
               </ProtectedRoute>
             }
           />
