@@ -11,27 +11,65 @@ import type {
 class BookingService {
   async searchAvailability(params: AvailabilitySearchParams): Promise<AvailableRoom[]> {
     // POST /api/v1/availability/search
-    const response = await httpClient.post<ApiResponse<AvailableRoom[]>>(
+    // Map features from lowercase to capitalized format expected by backend
+    const apiParams = {
+      startTime: params.startTime,
+      endTime: params.endTime,
+      capacity: params.capacity,
+      features: params.features?.map(feature => {
+        // Map lowercase frontend features to capitalized backend format
+        const featureMap: Record<string, string> = {
+          'wifi': 'Wifi',
+          'whiteboard': 'Whiteboard',
+          'projector': 'Projector'
+        };
+        return featureMap[feature.toLowerCase()] || feature;
+      })
+    };
+    
+    // Backend returns { message, rooms, count } not wrapped in ApiResponse.data
+    const response = await httpClient.post<{
+      message: string;
+      rooms: AvailableRoom[];
+      count: number;
+    }>(
       '/api/v1/availability/search',
-      params
+      apiParams
     );
-    return response.data.data;
+    
+    // Map backend room structure to frontend AvailableRoom format
+    // Backend returns rooms with _id, roomId, roomName, roomFeatures, etc.
+    return response.data.rooms.map((room: any) => ({
+      id: room._id || room.id,
+      name: room.roomName || room.name,
+      description: room.floorDescription || room.description || '',
+      capacity: room.capacity,
+      features: (room.roomFeatures || room.features || []).map((f: string) => f.toLowerCase()),
+      imageUrl: room.imageUrl,
+    })) as AvailableRoom[];
   }
 
-  async createBooking(roomId: string, payload: CreateBookingPayload): Promise<Booking> {
+  async createBooking(
+    roomId: string,
+    payload: {
+      startTime: string;
+      endTime: string;
+      capacity: number;
+      purpose: string;
+    }
+  ): Promise<Booking> {
     // POST /api/v1/rooms/:roomId/bookings
+    // Backend expects: roomId in params, startTime, endTime, capacity, purpose in body
     // SECURITY NOTE: Backend extracts user_id from httpOnly cookie
-    // Frontend should NOT send created_by in request (prevents impersonation)
-    // Convert to snake_case for API
     const apiPayload = {
-      room_id: roomId,
-      description: payload.description || payload.title,
-      start_time: payload.startTime,
-      end_time: payload.endTime,
+      startTime: payload.startTime,
+      endTime: payload.endTime,
+      capacity: payload.capacity,
+      purpose: payload.purpose,
     };
 
     await httpClient.post<ApiResponse<{ success: boolean; message: string }>>(
-      `/api/v1/rooms/${roomId}/bookings`,
+      `/api/v1/bookings/rooms/${roomId}`,
       apiPayload
     );
 
@@ -41,8 +79,8 @@ class BookingService {
       id: '',
       roomId,
       userId: '', // Will be populated when fetching bookings
-      title: payload.title,
-      description: payload.description,
+      title: payload.purpose,
+      description: payload.purpose,
       startTime: payload.startTime,
       endTime: payload.endTime,
       capacity: payload.capacity,

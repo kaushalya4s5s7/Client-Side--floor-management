@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { AxiosError } from 'axios';
 import { useUIStore } from '@/store/uiStore';
 import { useBookingStore } from '@/store/bookingStore';
 import { bookingService } from '@/api/BookingService';
@@ -6,41 +7,19 @@ import { ModalFactory } from '@/factory/ModalFactory';
 import { ButtonFactory } from '@/factory/ButtonFactory';
 import { toast } from '@/factory/ToastFactory';
 import { formatErrorForDisplay } from '@/errors/errorHandler';
-import { getMinDateTime, validateBookingTimes } from '@/utils/dateValidation';
-import type { CreateBookingPayload } from '@/types';
 
 export const BookingModal: React.FC = () => {
   const { modal, closeModal } = useUIStore();
   const selectedRoom = useBookingStore((state) => state.selectedRoom);
+  const searchParams = useBookingStore((state) => state.searchParams);
   const [isLoading, setIsLoading] = useState(false);
-  const [minDateTime, setMinDateTime] = useState('');
+  const [purpose, setPurpose] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
-  const [formData, setFormData] = useState<CreateBookingPayload>({
-    title: '',
-    description: '',
-    startTime: '',
-    endTime: '',
-    bufferBefore: 0,
-    bufferAfter: 0,
-    capacity: selectedRoom?.capacity || 1,
-    participants: [],
-  });
-
-  useEffect(() => {
-    setMinDateTime(getMinDateTime());
-  }, []);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  const handlePurposeChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>
   ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]:
-        name === 'capacity' || name === 'bufferBefore' || name === 'bufferAfter'
-          ? Number(value)
-          : value,
-    }));
+    setPurpose(e.target.value);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -51,188 +30,168 @@ export const BookingModal: React.FC = () => {
       return;
     }
 
-    // Validate booking times
-    const validation = validateBookingTimes(
-      formData.startTime,
-      formData.endTime
-    );
-
-    if (!validation.isValid) {
-      validation.errors.forEach((error) => toast.error(error));
+    if (!searchParams) {
+      toast.error('No search parameters found');
       return;
     }
 
-    // Validate capacity
-    if (formData.capacity > selectedRoom.capacity) {
-      toast.error(`Capacity cannot exceed room capacity (${selectedRoom.capacity})`);
+    if (!purpose.trim()) {
+      toast.error('Booking purpose is required');
       return;
     }
 
     setIsLoading(true);
+    setError(null); // Clear any previous errors
 
     try {
-      await bookingService.createBooking(selectedRoom.id, formData);
+      await bookingService.createBooking(
+        selectedRoom.id,
+        {
+          startTime: searchParams.startTime,
+          endTime: searchParams.endTime,
+          capacity: searchParams.capacity,
+          purpose: purpose.trim(),
+        }
+      );
       toast.success('Booking created successfully!');
+      setPurpose('');
+      setError(null);
       closeModal();
-    } catch (error) {
-      toast.error(formatErrorForDisplay(error));
+    } catch (err) {
+      // Extract exact error message from backend response
+      let errorMessage = 'An unknown error occurred';
+      
+      if (err instanceof AxiosError) {
+        // Backend returns { message: "..." } in response.data
+        const backendMessage = err.response?.data?.message;
+        if (backendMessage) {
+          errorMessage = backendMessage;
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      } else {
+        // Fallback to formatted error display
+        errorMessage = formatErrorForDisplay(err);
+      }
+      
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleCloseError = () => {
+    setError(null);
+  };
+
   const isOpen = modal.isOpen && modal.type === 'booking';
 
   return (
-    <ModalFactory
-      isOpen={isOpen}
-      onClose={closeModal}
-      title={`Book ${selectedRoom?.name || 'Room'}`}
-      size="lg"
-    >
+    <>
+      {/* Booking Modal */}
+      <ModalFactory
+        isOpen={isOpen}
+        onClose={closeModal}
+        title={`Book ${selectedRoom?.name || 'Room'}`}
+        size="lg"
+      >
       <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Room Name - Auto-filled, non-changeable */}
         <div>
-          <label
-            htmlFor="title"
-            className="block text-sm font-medium text-gray-700 mb-1.5"
-          >
-            Booking Title *
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Room Name
           </label>
           <input
-            id="title"
-            name="title"
             type="text"
-            required
-            value={formData.title}
-            onChange={handleChange}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            placeholder="e.g., Team Meeting"
+            value={selectedRoom?.name || ''}
+            disabled
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
           />
         </div>
 
+        {/* Room Capacity - Auto-filled, non-changeable */}
         <div>
-          <label
-            htmlFor="description"
-            className="block text-sm font-medium text-gray-700 mb-1.5"
-          >
-            Description
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Room Capacity
           </label>
-          <textarea
-            id="description"
-            name="description"
-            rows={3}
-            value={formData.description}
-            onChange={handleChange}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"
-            placeholder="Add any additional details..."
+          <input
+            type="number"
+            value={selectedRoom?.capacity || ''}
+            disabled
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div>
-            <label
-              htmlFor="startTime"
-              className="block text-sm font-medium text-gray-700 mb-1.5"
-            >
-              Start Time *
-            </label>
-            <input
-              id="startTime"
-              name="startTime"
-              type="datetime-local"
-              required
-              min={minDateTime}
-              value={formData.startTime}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            />
-           
-          </div>
+        {/* Start Time - Auto-filled, non-changeable */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Start Time
+          </label>
+          <input
+            type="datetime-local"
+            value={searchParams?.startTime || ''}
+            disabled
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+          />
+        </div>
 
-          <div>
-            <label
-              htmlFor="endTime"
-              className="block text-sm font-medium text-gray-700 mb-1.5"
-            >
-              End Time *
-            </label>
-            <input
-              id="endTime"
-              name="endTime"
-              type="datetime-local"
-              required
-              min={formData.startTime || minDateTime}
-              value={formData.endTime}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Must be after start time
-            </p>
-          </div>
+        {/* End Time - Auto-filled, non-changeable */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            End Time
+          </label>
+          <input
+            type="datetime-local"
+            value={searchParams?.endTime || ''}
+            disabled
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+          />
+        </div>
 
-          <div>
-            <label
-              htmlFor="bufferBefore"
-              className="block text-sm font-medium text-gray-700 mb-1.5"
-            >
-              Buffer Before (minutes)
-            </label>
-            <input
-              id="bufferBefore"
-              name="bufferBefore"
-              type="number"
-              min="0"
-              step="5"
-              value={formData.bufferBefore}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="bufferAfter"
-              className="block text-sm font-medium text-gray-700 mb-1.5"
-            >
-              Buffer After (minutes)
-            </label>
-            <input
-              id="bufferAfter"
-              name="bufferAfter"
-              type="number"
-              min="0"
-              step="5"
-              value={formData.bufferAfter}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="capacity"
-              className="block text-sm font-medium text-gray-700 mb-1.5"
-            >
-              Expected Capacity *
-            </label>
-            <input
-              id="capacity"
-              name="capacity"
-              type="number"
-              required
-              min="1"
-              max={selectedRoom?.capacity || 100}
-              value={formData.capacity}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            />
-            {selectedRoom && (
-              <p className="text-xs text-gray-500 mt-1">
-                Room capacity: {selectedRoom.capacity}
-              </p>
+        {/* Room Features - Auto-filled, non-changeable */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Room Features
+          </label>
+          <div className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 min-h-[2.5rem] flex items-center">
+            {selectedRoom?.features && selectedRoom.features.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {selectedRoom.features.map((feature, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800 capitalize"
+                  >
+                    {feature}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <span className="text-gray-400">No features available</span>
             )}
           </div>
+        </div>
+
+        {/* Booking Purpose - User input, compulsory */}
+        <div>
+          <label
+            htmlFor="purpose"
+            className="block text-sm font-medium text-gray-700 mb-1.5"
+          >
+            Booking Purpose *
+          </label>
+          <textarea
+            id="purpose"
+            name="purpose"
+            rows={3}
+            required
+            value={purpose}
+            onChange={handlePurposeChange}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"
+            placeholder="Enter the purpose of this booking..."
+          />
         </div>
 
         <div className="flex gap-3 pt-4">
@@ -250,5 +209,53 @@ export const BookingModal: React.FC = () => {
         </div>
       </form>
     </ModalFactory>
+
+      {/* Error Modal */}
+      <ModalFactory
+        isOpen={!!error}
+        onClose={handleCloseError}
+        title="Booking Error"
+        size="md"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0">
+              <svg
+                className="h-6 w-6 text-red-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Failed to Create Booking
+              </h3>
+              <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                {error}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <ButtonFactory
+              type="button"
+              variant="primary"
+              onClick={handleCloseError}
+              fullWidth
+            >
+              Close
+            </ButtonFactory>
+          </div>
+        </div>
+      </ModalFactory>
+    </>
   );
 };

@@ -37,9 +37,9 @@ export const handleApiError = (error: unknown): AppError => {
       return new AppError(ERROR_CODES.UNKNOWN_ERROR, 'Resource not found');
     }
 
-    if (error.response?.status >= 500) {
-      return new AppError(ERROR_CODES.SERVER_ERROR);
-    }
+    // if (error.response?.status >= 500) {
+    //   return new AppError(ERROR_CODES.SERVER_ERROR);
+    // }
 
     if (error.code === 'ECONNABORTED') {
       return new AppError(ERROR_CODES.TIMEOUT_ERROR);

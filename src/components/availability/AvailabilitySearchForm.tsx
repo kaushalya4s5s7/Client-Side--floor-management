@@ -4,7 +4,7 @@ import { bookingService } from '@/api/BookingService';
 import { ButtonFactory } from '@/factory/ButtonFactory';
 import { toast } from '@/factory/ToastFactory';
 import { formatErrorForDisplay } from '@/errors/errorHandler';
-import { getMinDateTime, validateSearchWindow } from '@/utils/dateValidation';
+import { getMinDateTime, validateBookingTimes } from '@/utils/dateValidation';
 import type { AvailabilitySearchParams } from '@/types';
 
 const AVAILABLE_FEATURES = ['wifi', 'whiteboard', 'projector'];
@@ -14,9 +14,8 @@ export const AvailabilitySearchForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [minDateTime, setMinDateTime] = useState('');
   const [formData, setFormData] = useState<AvailabilitySearchParams>({
-    windowStart: '',
-    windowEnd: '',
-    duration: 60,
+    startTime: '',
+    endTime: '',
     capacity: 1,
     features: [],
   });
@@ -32,7 +31,7 @@ export const AvailabilitySearchForm: React.FC = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'duration' || name === 'capacity' ? Number(value) : value,
+      [name]: name === 'capacity' ? Number(value) : value,
     }));
   };
 
@@ -48,11 +47,10 @@ export const AvailabilitySearchForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate search window
-    const validation = validateSearchWindow(
-      formData.windowStart,
-      formData.windowEnd,
-      formData.duration
+    // Validate time range
+    const validation = validateBookingTimes(
+      formData.startTime,
+      formData.endTime
     );
 
     if (!validation.isValid) {
@@ -85,65 +83,40 @@ export const AvailabilitySearchForm: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
             <label
-              htmlFor="windowStart"
+              htmlFor="startTime"
               className="block text-sm font-medium text-gray-700 mb-1.5"
             >
-              Window Start *
+              Start Time *
             </label>
             <input
-              id="windowStart"
-              name="windowStart"
+              id="startTime"
+              name="startTime"
               type="datetime-local"
               required
               min={minDateTime}
-              value={formData.windowStart}
+              value={formData.startTime}
               onChange={handleChange}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
             />
-           
           </div>
 
           <div>
             <label
-              htmlFor="windowEnd"
+              htmlFor="endTime"
               className="block text-sm font-medium text-gray-700 mb-1.5"
             >
-              Window End *
+              End Time *
             </label>
             <input
-              id="windowEnd"
-              name="windowEnd"
+              id="endTime"
+              name="endTime"
               type="datetime-local"
               required
-              min={formData.windowStart || minDateTime}
-              value={formData.windowEnd}
+              min={formData.startTime || minDateTime}
+              value={formData.endTime}
               onChange={handleChange}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
             />
-           
-          </div>
-
-          <div>
-            <label
-              htmlFor="duration"
-              className="block text-sm font-medium text-gray-700 mb-1.5"
-            >
-              Duration (minutes) *
-            </label>
-            <input
-              id="duration"
-              name="duration"
-              type="number"
-              required
-              min="15"
-              step="15"
-              value={formData.duration}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Meeting duration (minimum 15 min)
-            </p>
           </div>
 
           <div>
@@ -151,7 +124,7 @@ export const AvailabilitySearchForm: React.FC = () => {
               htmlFor="capacity"
               className="block text-sm font-medium text-gray-700 mb-1.5"
             >
-              Capacity Required
+              Capacity Required *
             </label>
             <input
               id="capacity"

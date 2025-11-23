@@ -83,9 +83,8 @@ export interface UpdateBookingPayload extends Partial<CreateBookingPayload> {
 
 // Availability Types
 export interface AvailabilitySearchParams {
-  windowStart: string;
-  windowEnd: string;
-  duration: number;
+  startTime: string;
+  endTime: string;
   capacity: number;
   features?: string[];
 }
