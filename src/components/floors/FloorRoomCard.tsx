@@ -20,23 +20,26 @@ export const FloorRoomCard: React.FC<FloorRoomCardProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-card-lg shadow-card p-6 hover:shadow-card-hover transition-shadow">
-      <div className="flex justify-between items-start mb-4">
+    <div 
+      className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 border border-gray-100"
+      style={{ fontFamily: '"Elms Sans", sans-serif' }}
+    >
+      <div className="flex justify-between items-start mb-5">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">{room.name}</h3>
-          <p className="text-sm text-gray-600 mt-1">
-            Capacity: {room.capacity} people
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">{room.name}</h3>
+          <p className="text-sm text-gray-600">
+            Capacity: <span className="font-medium text-gray-900">{room.capacity} people</span>
           </p>
         </div>
       </div>
 
-      <div className="mb-4">
-        <p className="text-sm font-medium text-gray-700 mb-2">Features:</p>
+      <div className="mb-6">
+        <p className="text-sm font-medium text-gray-700 mb-3">Features:</p>
         <div className="flex flex-wrap gap-2">
           {room.features.map((feature) => (
             <span
               key={feature}
-              className="px-3 py-1 bg-primary-50 text-primary-700 text-xs font-medium rounded-full"
+              className="px-3 py-1.5 bg-primary-50 text-primary-700 text-xs font-medium rounded-full capitalize"
             >
               {feature}
             </span>
@@ -44,7 +47,7 @@ export const FloorRoomCard: React.FC<FloorRoomCardProps> = ({
         </div>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex gap-3 pt-2">
         <ButtonFactory
           onClick={() => onEdit(room)}
           variant="secondary"

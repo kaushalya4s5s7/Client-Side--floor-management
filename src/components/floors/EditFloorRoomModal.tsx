@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal } from '@/factory/ModalFactory';
+import { ModalFactory } from '@/factory/ModalFactory';
 import { ButtonFactory } from '@/factory/ButtonFactory';
 import { toast } from '@/factory/ToastFactory';
 import { floorService } from '@/api/FloorService';
@@ -62,11 +62,6 @@ export const EditFloorRoomModal: React.FC<EditFloorRoomModalProps> = ({
 
     if (!room) return;
 
-    if (formData.features.length === 0) {
-      toast.error('Please select at least one feature');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
@@ -96,12 +91,12 @@ export const EditFloorRoomModal: React.FC<EditFloorRoomModalProps> = ({
   if (!room) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Edit Room">
-      <form onSubmit={handleSubmit} className="space-y-5">
+    <ModalFactory isOpen={isOpen} onClose={handleClose} title="Edit Room">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label
             htmlFor="name"
-            className="block text-sm font-medium text-gray-700 mb-1.5"
+            className="block text-sm font-medium text-gray-700 mb-2"
           >
             Room Name *
           </label>
@@ -113,14 +108,14 @@ export const EditFloorRoomModal: React.FC<EditFloorRoomModalProps> = ({
             value={formData.name}
             onChange={handleChange}
             placeholder="e.g., Conference Room A"
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-sm"
           />
         </div>
 
         <div>
           <label
             htmlFor="capacity"
-            className="block text-sm font-medium text-gray-700 mb-1.5"
+            className="block text-sm font-medium text-gray-700 mb-2"
           >
             Capacity *
           </label>
@@ -132,22 +127,22 @@ export const EditFloorRoomModal: React.FC<EditFloorRoomModalProps> = ({
             min="1"
             value={formData.capacity}
             onChange={handleChange}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-sm"
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 mt-2">
             Maximum number of people
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Features * (Select at least one)
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Features (Optional)
           </label>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {AVAILABLE_FEATURES.map((feature) => (
               <label
                 key={feature}
-                className="flex items-center space-x-3 cursor-pointer"
+                className="flex items-center space-x-3 cursor-pointer p-2 hover:bg-gray-50 rounded-lg transition-colors"
               >
                 <input
                   type="checkbox"
@@ -163,7 +158,7 @@ export const EditFloorRoomModal: React.FC<EditFloorRoomModalProps> = ({
           </div>
         </div>
 
-        <div className="flex gap-3 pt-4">
+        <div className="flex gap-3 pt-6 border-t border-gray-100">
           <ButtonFactory
             type="button"
             onClick={handleClose}
@@ -182,6 +177,6 @@ export const EditFloorRoomModal: React.FC<EditFloorRoomModalProps> = ({
           </ButtonFactory>
         </div>
       </form>
-    </Modal>
+    </ModalFactory>
   );
 };

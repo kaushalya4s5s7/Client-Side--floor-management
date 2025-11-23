@@ -107,12 +107,12 @@ export const FloorsPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 p-4" style={{ fontFamily: '"Elms Sans", sans-serif' }}>
       {/* Page Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center p-3">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Floor Management</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Floor Management</h1>
+          <p className="text-gray-600 text-sm">
             Manage rooms across different floors
           </p>
         </div>
@@ -122,16 +122,16 @@ export const FloorsPage: React.FC = () => {
       </div>
 
       {/* Floor Selection Tabs */}
-      <div className="bg-white rounded-card-lg shadow-card p-2">
-        <div className="flex gap-2 overflow-x-auto">
+      <div className="bg-white rounded-2xl shadow-lg p-3 border border-gray-100">
+        <div className="flex gap-2 overflow-x-auto custom-scrollbar">
           {floors.map((floor) => (
             <button
               key={floor.id}
               onClick={() => handleFloorSelect(floor)}
-              className={`px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap ${
+              className={`px-6 py-3 rounded-xl font-medium transition-all whitespace-nowrap ${
                 selectedFloor?.id === floor.id
                   ? 'bg-primary-600 text-white shadow-md'
-                  : 'text-gray-700 hover:bg-gray-100'
+                  : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
               {floor.name}
@@ -142,16 +142,16 @@ export const FloorsPage: React.FC = () => {
 
       {/* Selected Floor Info */}
       {selectedFloor && (
-        <div className="bg-primary-50 border border-primary-200 rounded-card-lg p-4">
+        <div className="bg-gradient-to-r from-primary-50 to-primary-100/50 border border-primary-200 rounded-2xl p-6">
           <h2 className="text-lg font-semibold text-primary-900">
             {selectedFloor.name}
           </h2>
           {selectedFloor.description && (
-            <p className="text-sm text-primary-700 mt-1">
+            <p className="text-sm text-primary-700 mt-2">
               {selectedFloor.description}
             </p>
           )}
-          <p className="text-sm text-primary-600 mt-2">
+          <p className="text-sm text-primary-600 mt-3 font-medium">
             {rooms.length} {rooms.length === 1 ? 'room' : 'rooms'} on this floor
           </p>
         </div>
@@ -163,18 +163,33 @@ export const FloorsPage: React.FC = () => {
           <LoaderFactory size="lg" />
         </div>
       ) : rooms.length === 0 ? (
-        <div className="bg-white rounded-card-lg shadow-card p-12 text-center">
+        <div className="bg-white rounded-2xl shadow-lg p-16 text-center border border-gray-100">
           <div className="max-w-md mx-auto">
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            <div className="mb-4">
+              <svg
+                className="mx-auto h-16 w-16 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">
               No Rooms Yet
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 mb-8 text-sm">
               {selectedFloor
                 ? `Add the first room to ${selectedFloor.name}`
                 : 'Select a floor to view rooms'}
             </p>
             {selectedFloor && (
-              <ButtonFactory onClick={handleAddRoom}>
+              <ButtonFactory onClick={handleAddRoom} className=' mx-auto'>
                 Add First Room
               </ButtonFactory>
             )}

@@ -7,6 +7,8 @@ import { formatErrorForDisplay } from '@/errors/errorHandler';
 import { getMinDateTime, validateSearchWindow } from '@/utils/dateValidation';
 import type { AvailabilitySearchParams } from '@/types';
 
+const AVAILABLE_FEATURES = ['wifi', 'whiteboard', 'projector'];
+
 export const AvailabilitySearchForm: React.FC = () => {
   const { setSearchResults, setSearchParams } = useBookingStore();
   const [isLoading, setIsLoading] = useState(false);
@@ -31,6 +33,15 @@ export const AvailabilitySearchForm: React.FC = () => {
     setFormData((prev) => ({
       ...prev,
       [name]: name === 'duration' || name === 'capacity' ? Number(value) : value,
+    }));
+  };
+
+  const handleFeatureToggle = (feature: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      features: prev.features?.includes(feature)
+        ? prev.features.filter((f) => f !== feature)
+        : [...(prev.features || []), feature],
     }));
   };
 
@@ -153,6 +164,34 @@ export const AvailabilitySearchForm: React.FC = () => {
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
             />
           </div>
+        </div>
+
+        {/* Feature Selection */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Features (Optional)
+          </label>
+          <div className="grid grid-cols-3 gap-3">
+            {AVAILABLE_FEATURES.map((feature) => (
+              <label
+                key={feature}
+                className="flex items-center space-x-2 cursor-pointer p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <input
+                  type="checkbox"
+                  checked={formData.features?.includes(feature) || false}
+                  onChange={() => handleFeatureToggle(feature)}
+                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                />
+                <span className="text-sm text-gray-700 capitalize">
+                  {feature}
+                </span>
+              </label>
+            ))}
+          </div>
+          <p className="text-xs text-gray-500 mt-2">
+            Select features you need (leave empty for no preference)
+          </p>
         </div>
 
         <ButtonFactory

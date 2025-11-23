@@ -31,7 +31,13 @@ export const LoginForm: React.FC = () => {
       const response = await authService.login(formData);
       login(response.user);
       toast.success('Login successful!');
-      navigate('/dashboard');
+      
+      // Role-based routing
+      if (response.user.role === 'admin') {
+        navigate('/floors');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (error) {
       toast.error(formatErrorForDisplay(error));
     } finally {
