@@ -6,7 +6,7 @@ interface AuthState {
   userId: string | null;
   email: string | null;
   name: string | null;
-  role: 'admin' | 'user' | null;
+  role: 'Admin' | 'Client' | null;
   isLoggedIn: boolean;
 
   // Actions
@@ -28,7 +28,7 @@ export const useAuthStore = create<AuthState>()(
         userId: user.id,
         email: user.email,
         name: user.name,
-        role: user.role || 'user',
+        role: user.role || 'Client',
         isLoggedIn: true,
       }),
 
@@ -40,11 +40,11 @@ export const useAuthStore = create<AuthState>()(
         isLoggedIn: false,
       }),
 
-      updateUser: (user: Partial<User>) => set((state) => ({
-        userId: user.id ?? state.userId,
-        email: user.email ?? state.email,
-        name: user.name ?? state.name,
-        role: user.role ?? state.role,
+      updateUser: (client: Partial<User>) => set((state) => ({
+        userId: client.id ?? state.userId,
+        email: client.email ?? state.email,
+        name: client.name ?? state.name,
+        role: client.role ?? state.role,
       })),
     }),
     {

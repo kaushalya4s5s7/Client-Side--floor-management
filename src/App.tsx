@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import { ToastContainer } from './factory/ToastFactory';
 import { ProtectedRoute } from './utils/ProtectedRoute';
+import { AdminRoute } from './utils/AdminRoute';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
@@ -52,9 +53,9 @@ function App() {
           <Route
             path="/floors"
             element={
-              <ProtectedRoute>
+              <AdminRoute>
                 <FloorsPage />
-              </ProtectedRoute>
+              </AdminRoute>
             }
           />
 

@@ -3,7 +3,7 @@ export interface User {
   id: string;
   email: string;
   name?: string;
-  role?: 'admin' | 'user';
+  role?: 'Admin' | 'Client';
 }
 
 export interface LoginCredentials {
@@ -146,7 +146,7 @@ export interface FloorRoom {
   floorId: string;       // Floor _id (internal - do not display)
   name: string;          // Display
   capacity: number;      // Display
-  features: string[];    // Display: ['wifi', 'whiteboard', 'projector']
+  features: string[];    // Display: ['Wifi', 'Whiteboard', 'Projector']
   createdBy?: string;    // Internal - do not display
   updatedBy?: string;    // Internal - do not display
   createdAt?: string;
@@ -154,14 +154,27 @@ export interface FloorRoom {
 }
 
 export interface CreateFloorRoomPayload {
-  floor_id: string;      // Internal floor ID
-  name: string;
-  capacity: number;
-  features: string[];    // Array of selected features
+  floor_id: string;      // Internal floor ID (for URL parameter)
+  roomId: number;        // Room number identifier
+  roomName: string;      // Room name
+  capacity: number;      // Room capacity
+  roomFeatures: string[]; // Array of selected features
 }
 
 export interface UpdateFloorRoomPayload {
   name?: string;
   capacity?: number;
   features?: string[];
+}
+
+export interface CreateFloorPayload {
+  floorName: string;
+  floorNumber: number;
+  floorDescription?: string;
+  rooms?: Array<{
+    roomId: number;
+    roomName: string;
+    capacity: number;
+    roomFeatures?: string[];
+  }>;
 }
