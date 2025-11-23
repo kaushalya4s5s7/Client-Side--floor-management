@@ -1,65 +1,13 @@
-// MOCK MODE: API calls are disabled for frontend testing
-// To enable real API calls, uncomment the code in the "REAL API" sections
-// and comment out the "MOCK API" sections
-
 import { httpClient } from './httpClient';
 import type {
   LoginCredentials,
   RegisterCredentials,
   AuthResponse,
-   ApiResponse,
-   User
+  ApiResponse,
+  User
 } from '@/types';
-// import { mockUser, mockAdminUser, simulateDelay } from './mockData';
 
 class AuthService {
-  // private readonly baseUrl = '/api/v1/user';
-
-  // ========== MOCK API ==========
-  // async login(credentials: LoginCredentials): Promise<AuthResponse> {
-  //   console.log('🔧 MOCK MODE: Login called with', credentials);
-  //   await simulateDelay(1000);
-
-  //   // Check if admin email
-  //   const isAdmin = credentials.email.toLowerCase().includes('admin');
-
-  //   // Simulate login success with role based on email
-  //   return {
-  //     user: isAdmin ? mockAdminUser : mockUser,
-  //     message: `Login successful (MOCK) - Role: ${isAdmin ? 'admin' : 'user'}`,
-  //   };
-  // }
-
-  // async register(credentials: RegisterCredentials): Promise<AuthResponse> {
-  //   console.log('🔧 MOCK MODE: Register called with', credentials);
-  //   await simulateDelay(1000);
-
-  //   // Simulate registration success
-  //   return {
-  //     user: {
-  //       ...mockUser,
-  //       email: credentials.email,
-  //       name: credentials.name || 'New User',
-  //     },
-  //     message: 'Registration successful (MOCK)',
-  //   };
-  // }
-
-  // async logout(): Promise<void> {
-  //   console.log('🔧 MOCK MODE: Logout called');
-  //   await simulateDelay(500);
-  //   // Simulate logout success
-  // }
-
-  // async getCurrentUser(): Promise<AuthResponse> {
-  //   console.log('🔧 MOCK MODE: Get current user called');
-  //   await simulateDelay(500);
-  //   return {
-  //     user: mockUser,
-  //   };
-  // }
-  // ========== END MOCK API ==========
-
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     // POST /api/v1/user/login
     // According to API_INTEGRATION.md, backend returns {success, message}
