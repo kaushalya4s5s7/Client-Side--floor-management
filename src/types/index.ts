@@ -144,6 +144,7 @@ export interface Floor {
 export interface FloorRoom {
   id: string;            // Room _id (internal - do not display)
   floorId: string;       // Floor _id (internal - do not display)
+  roomId?: number;       // Room ID number (display)
   name: string;          // Display
   capacity: number;      // Display
   features: string[];    // Display: ['Wifi', 'Whiteboard', 'Projector']

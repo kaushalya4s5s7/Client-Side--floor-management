@@ -27,9 +27,16 @@ export const FloorRoomCard: React.FC<FloorRoomCardProps> = ({
       <div className="flex justify-between items-start mb-5">
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">{room.name}</h3>
-          <p className="text-sm text-gray-600">
-            Capacity: <span className="font-medium text-gray-900">{room.capacity} people</span>
-          </p>
+          <div className="space-y-1">
+            {room.roomId && (
+              <p className="text-sm text-gray-600">
+                Room ID: <span className="font-medium text-gray-900">{room.roomId}</span>
+              </p>
+            )}
+            <p className="text-sm text-gray-600">
+              Capacity: <span className="font-medium text-gray-900">{room.capacity} people</span>
+            </p>
+          </div>
         </div>
       </div>
 

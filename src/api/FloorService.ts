@@ -61,6 +61,7 @@ class FloorService {
     return response.data.rooms.map((room: any) => ({
       id: room._id,
       floorId: room.floorId,
+      roomId: room.roomId, // Room ID number
       name: room.roomName,
       capacity: room.capacity,
       features: room.roomFeatures || [],
@@ -73,9 +74,13 @@ class FloorService {
 
   async createFloorRoom(payload: CreateFloorRoomPayload): Promise<FloorRoom> {
     // POST /api/v1/floors/:floorId/rooms
+    // Backend returns: { message, room } not wrapped in ApiResponse.data
     // SECURITY NOTE: Backend should extract created_by from httpOnly cookie
     // and verify Admin role before creating room
-    const response = await httpClient.post<ApiResponse<FloorRoom>>(
+    const response = await httpClient.post<{
+      message: string;
+      room: any;
+    }>(
       `/api/v1/floors/${payload.floor_id}/rooms`,
       {
         roomId: payload.roomId,
@@ -86,7 +91,21 @@ class FloorService {
         // createdBy is extracted from httpOnly cookie by backend
       }
     );
-    return response.data.data;
+
+    // Map backend response to frontend FloorRoom type
+    const room = response.data.room;
+    return {
+      id: room._id,
+      floorId: room.floorId,
+      roomId: room.roomId, // Room ID number
+      name: room.roomName,
+      capacity: room.capacity,
+      features: room.roomFeatures || [],
+      createdBy: room.createdBy,
+      updatedBy: room.updatedBy,
+      createdAt: room.createdAt,
+      updatedAt: room.updatedAt,
+    };
   }
 
   async updateFloorRoom(roomId: string, payload: UpdateFloorRoomPayload): Promise<FloorRoom> {
@@ -110,6 +129,7 @@ class FloorService {
     return {
       id: room._id,
       floorId: room.floorId,
+      roomId: room.roomId, // Room ID number
       name: room.roomName,
       capacity: room.capacity,
       features: room.roomFeatures || [],
