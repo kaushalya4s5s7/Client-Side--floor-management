@@ -30,7 +30,7 @@ export const Header: React.FC = () => {
               onClick={() => navigate('/dashboard')}
               className="text-xl font-bold text-gray-900 hover:text-primary-600 transition-colors"
             >
-              Floor
+              Dashboard
             </button>
           </div>
 
