@@ -9,9 +9,17 @@ import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { MyBookingsPage } from './pages/MyBookingsPage';
 import { FloorsPage } from './pages/FloorsPage';
+import { syncService } from './services/SyncService';
 
 function App() {
   const logout = useAuthStore((state) => state.logout);
+
+  useEffect(() => {
+    // Initialize sync service (IndexedDB, background sync, etc.)
+    syncService.initialize().catch((error) => {
+      console.error('Failed to initialize sync service:', error);
+    });
+  }, []);
 
   useEffect(() => {
     // Listen for unauthorized events from httpClient

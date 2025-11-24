@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { authService } from '@/api/AuthService';
+import { syncService } from '@/services/SyncService';
 import { ButtonFactory } from '@/factory/ButtonFactory';
 import { toast } from '@/factory/ToastFactory';
 import { formatErrorForDisplay } from '@/errors/errorHandler';
@@ -32,11 +33,18 @@ export const LoginForm: React.FC = () => {
       login(response.user);
       toast.success('Login successful!');
 
+      // Trigger sync if user is Admin
+      if (response.user.role === 'Admin') {
+        syncService.triggerSyncIfAdmin().catch((error) => {
+          console.error('Failed to trigger sync after login:', error);
+        });
+      }
+
       // Role-based routing
-      if (response.user.role === 'Admin' || response.user.role === 'Client') 
-      navigate('/dashboard');
-      
-     } catch (error) {
+      if (response.user.role === 'Admin' || response.user.role === 'Client') {
+        navigate('/dashboard');
+      }
+    } catch (error) {
       toast.error(formatErrorForDisplay(error));
     } finally {
       setIsLoading(false);
